@@ -245,6 +245,7 @@ input.big{font-family:var(--f-num);font-size:28px;padding:10px 14px}
 .settle{margin-top:10px;padding:14px;border-radius:var(--r);background:var(--spend-soft);color:var(--spend);font-weight:700;display:flex;flex-direction:column;gap:2px}
 .settle small{font-weight:400;color:var(--ink-2);font-size:12.5px}
 .aatag{color:var(--gold);font-weight:500}
+.kv b small{display:block;font-weight:400;font-size:12.5px;color:var(--ink-3);margin-top:2px}
 .mrow{display:grid;grid-template-columns:minmax(0,64px) 1fr auto;gap:10px;align-items:center;margin-top:9px;font-size:13px;color:var(--ink-2)}
 .mrow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mrow .sbar{margin-top:0}
@@ -990,8 +991,17 @@ function vUs(c){
  const sp=inM.filter(l=>l.type==='spend');
  const ours=sp.filter(l=>sOwner(l)==='us'),paid=id=>sum(ours.filter(l=>sPayer(l)===id),l=>+l.amount);
  const own=id=>sum(sp.filter(l=>sOwner(l)===id),l=>+l.amount);
- const cats={};sp.forEach(l=>{cats[l.cat||'其他']=(cats[l.cat||'其他']||0)+(+l.amount||0)});
- const top=Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];
+ // top categories of a set of spending records
+ const top3=list=>{const m={};list.forEach(l=>{const k=l.cat||'其他';m[k]=(m[k]||0)+(+l.amount||0)});
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`${esc(k)} <span class="num">${money(v)}</span>`).join('、')};
+ const oursTotal=sum(ours,l=>+l.amount);
+ const pmo=ymd(new Date(y,m-2,1)).slice(0,7);
+ const prevTotal=sum(LOGS.filter(l=>l.type==='spend'&&sOwner(l)==='us'&&(l.date||'').startsWith(pmo)),l=>+l.amount);
+ const pct=prevTotal>0?Math.round((oursTotal-prevTotal)/prevTotal*100):null;
+ const vsPrev=pct===null?'':pct<0?`比上個月少 ${-pct}%`:pct>0?`比上個月多 ${pct}%`:'跟上個月差不多';
+ const bud=+SET.budget||0;
+ const budNote=bud?(oursTotal>bud?`超出預算 ${money(oursTotal-bud)}`:`預算還剩 ${money(bud-oursTotal)}`):'';
+ const mine=sp.filter(l=>sOwner(l)===me);
  const pd=pending();let settle='';
  if(pd.items.length){
   const n=pd.net,who=n>0?you:me,to=n>0?me:you;
@@ -1008,10 +1018,12 @@ function vUs(c){
   <div class="kv"><span>記了幾餐</span><b><span class="num">${foods.length}</span> 餐，一起吃 <span class="num">${tg}</span> 次</b></div>
   <div class="kv"><span>清淡日</span><b>${esc(nameOf(me))} <span class="num">${cleanM(me)}</span> 天${you?`、${esc(nameOf(you))} <span class="num">${cleanM(you)}</span> 天`:''}</b></div>
   <div class="kv"><span>運動</span><b>${esc(nameOf(me))} <span class="num">${mv(me)}</span> 分${you?`、${esc(nameOf(you))} <span class="num">${mv(you)}</span> 分`:''}</b></div>
-  <div class="kv"><span>共同花費</span><b class="num">${money(sum(ours,l=>+l.amount))}</b></div>
+  <div class="kv"><span>共同花費</span><b><span class="num">${money(oursTotal)}</span>${vsPrev||budNote?`<small>${[vsPrev,budNote].filter(Boolean).join(' · ')}</small>`:''}</b></div>
+  ${ours.length?`<div class="kv"><span>共同花費花在哪</span><b>${top3(ours)}</b></div>`:''}
   <div class="kv"><span>共同花費誰付的</span><b>${esc(nameOf(me))} <span class="num">${money(paid(me))}</span>${you?`、${esc(nameOf(you))} <span class="num">${money(paid(you))}</span>`:''}</b></div>
-  <div class="kv"><span>個人花費</span><b>${esc(nameOf(me))} <span class="num">${money(own(me))}</span>${you?`、${esc(nameOf(you))} <span class="num">${money(own(you))}</span>`:''}</b></div>
-  <div class="kv"><span>花最多的地方</span><b>${top?`${esc(top[0])} <span class="num">${money(top[1])}</span>`:'這個月還沒有花費'}</b></div>
+  <div class="kv"><span>我的個人花費</span><b><span class="num">${money(own(me))}</span>${mine.length?`<small>${top3(mine)}</small>`:''}</b></div>
+  ${you?`<div class="kv"><span>${esc(nameOf(you))}的個人花費</span><b class="num">${money(own(you))}</b></div>`:''}
+  ${sp.length?'':`<div class="kv"><span>花費</span><b class="muted">這個月還沒有花費紀錄</b></div>`}
  </div>
  ${settle}
  ${you||!SPACE?'':`<div class="sec"><h2>邀請另一半</h2></div>
