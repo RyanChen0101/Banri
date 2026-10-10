@@ -154,6 +154,13 @@ main{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:4px calc(va
 .day span{font-size:12px;color:var(--ink-3);font-weight:500}
 .empty{padding:20px 16px 22px;text-align:center;color:var(--ink-3);font-size:14px;display:flex;flex-direction:column;gap:6px;align-items:center}
 .empty b{color:var(--ink-2);font-size:15px}
+.glance{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;min-height:56px}
+.glance + .glance,.gl-list + .glance{border-top:1px solid var(--line)}
+.glance .tic{width:32px;height:32px;border-radius:9px}
+.gl-name{font-weight:500;flex:none}
+.gl-sum{flex:1;min-width:0;font-size:13.5px;color:var(--ink-2);text-align:right;overflow-wrap:anywhere}
+.gl-arrow{color:var(--ink-3);display:grid;place-items:center}
+.gl-list{border-top:1px solid var(--line);background:var(--surface-2)}
 .more{display:block;margin:16px auto 0;padding:10px 18px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-weight:500}
 
 /* chips */
@@ -245,6 +252,20 @@ input.big{font-family:var(--f-num);font-size:28px;padding:10px 14px}
 .settle{margin-top:10px;padding:14px;border-radius:var(--r);background:var(--spend-soft);color:var(--spend);font-weight:700;display:flex;flex-direction:column;gap:2px}
 .settle small{font-weight:400;color:var(--ink-2);font-size:12.5px}
 .aatag{color:var(--gold);font-weight:500}
+.items{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.item{display:inline-flex;align-items:center;border-radius:12px;background:var(--food-soft);color:var(--food);min-height:40px;max-width:100%}
+.item .t{padding:0 4px 0 13px;min-height:40px;display:inline-flex;align-items:center;overflow-wrap:anywhere;text-align:left}
+.item .x{width:36px;min-height:40px;display:grid;place-items:center;color:var(--food);opacity:.8}
+.item-add{display:flex;gap:8px}
+.item-add input{flex:1;min-width:0}
+.item-add .small-btn{height:48px}
+.freq{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
+.freq small{font-size:12px;color:var(--ink-3);margin-right:2px}
+.fq{min-height:34px;padding:0 11px;border-radius:17px;border:1px dashed var(--line);font-size:13.5px;color:var(--ink-2);display:inline-flex;align-items:center;gap:4px}
+.fq.manage{border-style:solid;color:var(--bad)}
+.fq-tool{font-size:12.5px;color:var(--accent);min-height:34px;padding:0 6px}
+.bill{background:var(--spend-soft);color:var(--spend);border-radius:12px;padding:11px 13px;font-size:13.5px;display:flex;flex-direction:column;gap:6px}
+.bill button{align-self:flex-start;font-size:13px;color:var(--accent);min-height:30px}
 .kv b small{display:block;font-weight:400;font-size:12.5px;color:var(--ink-3);margin-top:2px}
 .mrow{display:grid;grid-template-columns:minmax(0,64px) 1fr auto;gap:10px;align-items:center;margin-top:9px;font-size:13px;color:var(--ink-2)}
 .mrow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -343,7 +364,10 @@ const IC={
  move:'<circle cx="14.5" cy="4.5" r="1.8"/><path d="M7 21l3.2-5.5L13 17v4M6 11.5l3-3.5h5l2.5 4M10.5 8.5l-.8 4.5 3.3 2"/>',
  check:'<path d="M5 12.5l4.5 4.5L19 7"/>',
  back:'<path d="M15 5l-7 7 7 7"/>',
+ down:'<path d="M6 9l6 6 6-6"/>',
+ up:'<path d="M6 15l6-6 6 6"/>',
  right:'<path d="M9 5l7 7-7 7"/>',
+ x:'<path d="M6 6l12 12M18 6L6 18"/>',
  trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
  edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',
  lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>',
@@ -653,8 +677,8 @@ function openAdd(type,log){
  const h=new Date().getHours();
  F=log?Object.assign({},log,{editId:log.id,amount:log.amount??'',minutes:log.minutes??'',
    owner:log.type==='spend'?rel(sOwner(log)):'me',payer:log.type==='spend'?rel(sPayer(log)):'me',aa:!!log.aa,ownerTouched:true,
-   method:log.method||'',platform:log.platform||'',platOpen:!!log.platform,pairWith:log.pairWith||'',pairTouched:'pairWith' in log}):{
-  type:type||'food',date:today(),meal:h<10?'早餐':h<14?'午餐':h<17?'點心':h<21?'晚餐':'點心',text:'',together:false,pairWith:'',pairTouched:false,junk:[],
+   method:log.method||'',platform:log.platform||'',platOpen:!!log.platform,pairWith:log.pairWith||'',pairTouched:'pairWith' in log,items:itemsOf(log),itemDraft:'',manageFreq:false}):{
+  type:type||'food',date:today(),meal:h<10?'早餐':h<14?'午餐':h<17?'點心':h<21?'晚餐':'點心',text:'',items:[],itemDraft:'',manageFreq:false,together:false,pairWith:'',pairTouched:false,junk:[],
   amount:'',cat:'餐飲',kind:'走路',minutes:'',
   owner:(type||'food')==='spend'?'us':'me',payer:'me',aa:false,ownerTouched:false,
   method:PREFS.lastMethod||'',platform:'',platOpen:false};
@@ -682,9 +706,34 @@ function aaHint(f){
  const payer=absId(f.payer),other=otherOf(payer),a=amtOf(f);
  return a>0?`${nameOf(other)}要給${nameOf(payer)} ${money(a/2)}（總額的一半）`:'開啟後，沒付錢的人要給付款人一半';
 }
+/* meal items: one record per meal, any number of items inside it */
+const splitItems=t=>String(t||'').split(/[、,，;；\n]+/).map(x=>x.trim()).filter(Boolean);
+const itemsOf=l=>Array.isArray(l.items)&&l.items.length?l.items.slice():l.type==='food'?splitItems(l.text):[];
+function freqItems(f){
+ const hid=new Set(PREFS.hiddenItems||[]),have=new Set(f.items||[]),cnt={},last={};
+ LOGS.forEach(l=>{if(l.type!=='food'||l.who!==ME)return;itemsOf(l).forEach(x=>{cnt[x]=(cnt[x]||0)+1;if(!last[x]||l.date>last[x])last[x]=l.date})});
+ return Object.keys(cnt).filter(x=>!hid.has(x)&&!have.has(x)).sort((a,b)=>cnt[b]-cnt[a]||(last[b]>last[a]?1:-1)).slice(0,10);
+}
+function itemsField(f){
+ const fq=freqItems(f);
+ return `<div><label class="h" for="f-item">吃了什麼<em>選填，可以加好幾個品項；點品項可以修改</em></label>
+  ${(f.items||[]).length?`<div class="items">${f.items.map((x,i)=>`<span class="item"><button class="t" data-act="itemEdit" data-v="${i}" aria-label="修改 ${esc(x)}">${esc(x)}</button><button class="x" data-act="itemDel" data-v="${i}" aria-label="刪除 ${esc(x)}">${ic('x','sm')}</button></span>`).join('')}</div>`:''}
+  <div class="item-add"><input class="in" id="f-item" data-f="itemDraft" value="${esc(f.itemDraft||'')}" placeholder="例如：御飯糰，輸入後按 Enter" maxlength="30" enterkeyhint="done" autocomplete="off"><button class="small-btn" data-act="itemAdd">${ic('plus','sm')}加入</button></div>
+  ${fq.length||f.manageFreq?`<div class="freq"><small>${f.manageFreq?'點一下從常吃移除':'常吃'}</small>${fq.map(x=>`<button class="fq ${f.manageFreq?'manage':''}" data-act="${f.manageFreq?'freqHide':'freqAdd'}" data-v="${esc(x)}">${f.manageFreq?ic('x','sm'):''}${esc(x)}</button>`).join('')}
+   ${(PREFS.hiddenItems||[]).length&&f.manageFreq?`<button class="fq-tool" data-act="freqReset">恢復全部</button>`:''}<button class="fq-tool" data-act="freqManage">${f.manageFreq?'完成':'管理'}</button></div>`:''}</div>`;
+}
+function addItem(raw){
+ const parts=splitItems(raw);if(!parts.length)return false;
+ F.items=(F.items||[]).concat(parts.filter(x=>!(F.items||[]).includes(x))).slice(0,20);F.itemDraft='';return true;
+}
+// the bill for a shared meal: a cost already logged on the partner's linked meal
+function sharedBill(f){
+ if(!f.together||!f.pairWith)return null;
+ return LOGS.find(l=>l.type==='spend'&&l.fromFood===f.pairWith)||null;
+}
 function pairCands(f){
- const you=partner();if(!you)return [];
- const mine=LOGS.filter(l=>l.who===ME&&l.id!==f.editId);
+ const au=f.who||ME,you=otherOf(au);if(!you)return [];
+ const mine=LOGS.filter(l=>l.who===au&&l.id!==f.editId);
  return LOGS.filter(l=>l.who===you&&l.type===f.type&&l.date===f.date)
   .filter(c=>!mine.some(m=>m.pairWith===c.id)&&!(c.pairWith&&mine.some(m=>m.id===c.pairWith)))
   .sort((a,b)=>(a.ts||0)-(b.ts||0));
@@ -695,7 +744,7 @@ function autoPair(f){
  f.pairWith=c.length===1?c[0].id:'';
 }
 function pairField(f){
- const you=partner();if(!you||!f.together)return '';
+ const you=otherOf(f.who||ME);if(!you||!f.together)return '';
  autoPair(f);
  const c=pairCands(f);
  const o=(id,label,sub)=>`<button class="opt ${f.pairWith===id?'on':''}" data-act="fpair" data-v="${esc(id)}" style="flex-direction:column;align-items:flex-start;justify-content:center;padding-block:8px;text-align:left">${esc(label)}${sub?`<small style="font-size:12px;opacity:.8">${esc(sub)}</small>`:''}</button>`;
@@ -731,20 +780,21 @@ function logRight(l){
  if(l.type==='move')return `${+l.minutes||0} 分`;
  return '';
 }
-function logRow(l,c){
+function logRow(l,c,mini){
  const p=c.per[l.id]||{pts:0};const likes=(l.likes||[]).length;
  const flags=[];
- if(l.type==='spend'){const o=sOwner(l),p=sPayer(l);
+ const right=mini&&mini.cost?money(mini.cost):logRight(l);
+ if(l.type==='spend'&&!mini){const o=sOwner(l),p=sPayer(l);
   flags.push(o==='us'?'共同':o===ME?'我的':esc(nameOf(o))+'的');
   if(p!==l.who)flags.push(esc(nameOf(p))+'付');
   if(l.aa)flags.push(l.settledAt?'<span class="aatag done">AA 已結清</span>':'<span class="aatag">AA 未結清</span>');}
  if(l.together)flags.push('一起');
- if(l.type==='food'&&(l.junk||[]).length)flags.push(`<span class="jtag">${esc(l.junk.join('、'))}</span>`);
+ if(l.type==='food'&&!mini&&(l.junk||[]).length)flags.push(`<span class="jtag">${esc(l.junk.join('、'))}</span>`);
  if(likes)flags.push(`${ic('heart','sm')} ${likes}`);
  return `<button class="log" data-act="open" data-v="${esc(l.id)}">
   <span class="tic t-${l.type}">${ic(l.type)}</span>
   <span class="lb"><b>${esc(logTitle(l))}</b><small><i class="who ${cls(l.who)}">${esc(nameOf(l.who))}</i>${flags.map(f=>`<span>${f}</span>`).join('')}${p.lucky?'<span class="lucky">驚喜 ×2</span>':''}</small></span>
-  <span class="lr">${logRight(l)?`<b>${logRight(l)}</b>`:''}<span class="pts ${p.pts?'':'zero'}">+${p.pts}</span></span>
+  <span class="lr">${right?`<b>${right}</b>`:''}<span class="pts ${p.pts?'':'zero'}">+${p.pts}</span></span>
  </button>`;
 }
 const sortLogs=a=>[...a].sort((x,y)=>x.date<y.date?1:x.date>y.date?-1:(y.ts||0)-(x.ts||0));
@@ -755,7 +805,22 @@ function vHome(c){
  const d=new Date();const h=d.getHours();
  const hi=h<11?'早安':h<18?'午安':'晚安';
  const nxt=MILES.find(m=>m[0]>c.streak);
- const todayLogs=sortLogs(LOGS.filter(l=>l.date===t));
+ // home shows only the latest three; a meal's linked cost rides on the meal row instead of taking a row of its own
+ const todayAll=sortLogs(LOGS.filter(l=>l.date===t)),mealCost={};
+ todayAll.forEach(l=>{if(l.type==='spend'&&l.fromFood&&todayAll.some(f=>f.id===l.fromFood))mealCost[l.fromFood]=(mealCost[l.fromFood]||0)+(+l.amount||0)});
+ todayAll.forEach(f=>{if(f.type!=='food'||mealCost[f.id]!==undefined||!f.together)return;
+  const o=todayAll.find(x=>x.type==='food'&&x.who!==f.who&&(x.id===f.pairWith||x.pairWith===f.id));if(o&&mealCost[o.id]!==undefined)mealCost[f.id]=mealCost[o.id]});
+ const todayLogs=todayAll;
+ // today at a glance: one line per kind, tap to open that kind's records
+ const crew=[me,you].filter(Boolean);
+ const sumLine=k=>{const a=todayAll.filter(l=>l.type===k);if(!a.length)return '<span class="muted">還沒記</span>';
+  if(k==='spend'){const tot=sum(a,l=>+l.amount),us=sum(a.filter(l=>sOwner(l)==='us'),l=>+l.amount);
+   return `共 <span class="num">${money(tot)}</span>${us?`（共同 <span class="num">${money(us)}</span>）`:''}`}
+  return crew.map(id=>{const m=a.filter(l=>l.who===id);const v=k==='food'?`${m.length} 餐`:`${sum(m,l=>+l.minutes)} 分`;
+   return `<i class="who ${cls(id)}">${esc(nameOf(id))}</i> <span class="num">${v}</span>`}).join(' · ')};
+ const glance=Object.keys(TYPES).map(k=>{const open=ui.today===k,a=todayAll.filter(l=>l.type===k);
+  return `<button class="glance" data-act="glance" data-v="${k}" aria-expanded="${open}" ${a.length?'':'disabled'}><span class="tic t-${k}">${ic(k,'sm')}</span><span class="gl-name">${TYPES[k].name}</span><span class="gl-sum">${sumLine(k)}</span>${a.length?`<span class="gl-arrow">${ic(open?'up':'down','sm')}</span>`:''}</button>
+   ${open?`<div class="gl-list">${a.map(l=>logRow(l,c,{cost:k==='food'?mealCost[l.id]:0})).join('')}</div>`:''}`}).join('');
  const ws=weekStart(t),g=c.goal,wkc=c.weeks[ws]||{done:{},all:null};
  const mm=id=>sum(LOGS.filter(l=>l.type==='move'&&l.who===id&&weekStart(l.date)===ws),l=>+l.minutes);
  const mrow=id=>{const m=mm(id),ok=!!wkc.done[id];
@@ -795,7 +860,7 @@ function vHome(c){
    <div class="legend"><span>${shared>budget?'超出 '+money(shared-budget):'還剩 '+money(budget-shared)}</span></div></div>`:''}
  </div>
  <div class="sec"><h2>今天</h2>${todayLogs.length?`<button data-act="tab" data-v="logs">全部紀錄</button>`:''}</div>
- ${todayLogs.length?`<div class="card logs">${todayLogs.map(l=>logRow(l,c)).join('')}</div>`
+ ${todayLogs.length?`<div class="card logs">${glance}</div>`
   :`<div class="card empty">${sprig(52)}${LOADING?'<b>正在讀取紀錄…</b>':`<b>今天還沒有紀錄</b><span>從上面三個按鈕選一個，記下第一筆就有點數。</span>`}</div>`}`;
 }
 /* "together" meals/workouts: two records are the same occasion only when one is linked to the other (pairWith).
@@ -876,7 +941,7 @@ function vLogs(c){
 }
 function estimate(){
  if(!F)return {pts:0,extra:''};
- const T=TYPES[F.type];const n=LOGS.filter(l=>l.who===ME&&l.date===F.date&&l.type===F.type&&l.id!==F.editId).length;
+ const T=TYPES[F.type];const au=F.who||ME;const n=LOGS.filter(l=>l.who===au&&l.date===F.date&&l.type===F.type&&l.id!==F.editId).length;
  if(n>=T.cap)return {pts:0,extra:`今天${T.name}已記滿 ${T.cap} 筆，這筆不計點`};
  let p=T.pts;if(F.type==='move'&&(+F.minutes||0)>=30)p+=5;if(F.together&&F.type!=='spend')p+=F.type==='move'?5:2;
  if(F.type==='food'&&!F.editId&&+F.amount>0){const m=LOGS.filter(l=>l.who===ME&&l.date===F.date&&l.type==='spend').length;if(m<TYPES.spend.cap)p+=TYPES.spend.pts}
@@ -888,14 +953,16 @@ function vAdd(){
  let body='';
  if(f.type==='food')body=`
   <div><label class="h">哪一餐</label><div class="wrapchips">${MEALS.map(v=>opt('meal',v)).join('')}</div></div>
-  <div><label class="h" for="f-text">吃了什麼<em>選填</em></label><input class="in" id="f-text" data-f="text" value="${esc(f.text)}" placeholder="例如：牛肉麵、自己煮的咖哩" maxlength="60"></div>
+  ${itemsField(f)}
   <div><label class="h">有沒有這些<em>可複選，沒有就不用點</em></label>
    <div class="wrapchips">${JUNK.map(v=>`<button class="opt junk ${(f.junk||[]).includes(v)?'on':''}" data-act="fjunk" data-v="${v}" aria-pressed="${(f.junk||[]).includes(v)}">${v}</button>`).join('')}</div>
    <p class="hint">${(f.junk||[]).length?'不會扣分，照樣拿記錄的點數，只是這天不算清淡日。':`一天至少記 ${CLEAN_MIN} 餐、都沒標這些，隔天自動 +${CLEAN} 點。`}</p></div>
   ${sw('together','一起吃','兩個人一起吃，多 +2 點')}
   ${pairField(f)}
-  ${f.editId?'':`<div><label class="h" for="f-amount">餐費<em>選填，填這餐的總金額，會同時記一筆花費</em></label><div class="amt"><span>NT$</span><input class="in" id="f-amount" data-f="amount" inputmode="numeric" value="${esc(f.amount)}" placeholder="0"></div></div>
-  ${amtOf(f)>0?moneyFields(f):''}`}`;
+  ${f.editId?'':(()=>{const bill=sharedBill(f);
+   if(bill&&!f.billAnyway)return `<div><label class="h">餐費</label><div class="bill"><span>${esc(nameOf(bill.who))}已經記了這頓的餐費 <b class="num">${money(bill.amount)}</b>（${esc(nameOf(sPayer(bill)))}付），不用再填。</span><button data-act="billAnyway">我還要另外記一筆</button></div></div>`;
+   return `<div><label class="h" for="f-amount">餐費<em>選填；這頓總共花多少，一起吃時由付錢的人填一次就好</em></label><div class="amt"><span>NT$</span><input class="in" id="f-amount" data-f="amount" inputmode="numeric" value="${esc(f.amount)}" placeholder="0"></div></div>
+  ${amtOf(f)>0?moneyFields(f):''}`})()}`;
  else if(f.type==='spend')body=`
   <div><label class="h" for="f-amount">金額</label><div class="amt"><span>NT$</span><input class="in big" id="f-amount" data-f="amount" inputmode="numeric" value="${esc(f.amount)}" placeholder="0"></div></div>
   ${moneyFields(f)}
@@ -1071,7 +1138,7 @@ function render(){
  NAV.forEach(([k,i,l])=>{const b=document.getElementById('n-'+k);b.className=V.name===k?'on':'';b.innerHTML=ic(i)+l});
  nav.querySelector('.add span').innerHTML=ic('plus');
  if(V.name==='add'&&F){
-  top.innerHTML=`<button class="iconbtn" data-act="cancel" aria-label="返回">${ic('back')}</button><h1>${F.editId?'編輯紀錄':'記一筆'}</h1>`;
+  top.innerHTML=`<button class="iconbtn" data-act="cancel" aria-label="返回">${ic('back')}</button><h1>${F.editId?(F.who&&F.who!==ME?`編輯${esc(nameOf(F.who))}的紀錄`:'編輯紀錄'):'記一筆'}</h1>`;
   const focus=document.activeElement&&document.activeElement.id;
   main.innerHTML=vAdd();
   if(focus&&focus.startsWith('f-')){const el=document.getElementById(focus);if(el){el.focus();try{const n=el.value.length;el.setSelectionRange(n,n)}catch(e){}}}
@@ -1116,15 +1183,19 @@ function spendFields(f){
  return out;
 }
 async function save(){
- const f=F;const amt=Math.round(+String(f.amount).replace(/[^\d.]/g,'')||0),min=Math.round(+f.minutes||0);
+ const f=F;if(f.type==='food'&&f.itemDraft)addItem(f.itemDraft);
+ if(f.type==='food'&&sharedBill(f)&&!f.billAnyway)f.amount='';
+ const amt=Math.round(+String(f.amount).replace(/[^\d.]/g,'')||0),min=Math.round(+f.minutes||0);
  if(f.type==='spend'&&!(amt>0)){toast('請先填金額');document.getElementById('f-amount')?.focus();return}
  if(f.type==='move'&&!(min>0)){toast('請填運動幾分鐘');document.getElementById('f-minutes')?.focus();return}
  if(!f.date||f.date>today()){toast('日期不能是未來');return}
  const btn=document.getElementById('savebtn');if(btn)btn.disabled=true;
- const base={type:f.type,who:ME,date:f.date,ts:f.ts||Date.now(),text:(f.text||'').trim()};
+ const author=f.editId?(f.who||ME):ME;
+ const base={type:f.type,who:author,date:f.date,ts:f.ts||Date.now(),text:(f.text||'').trim()};
+ if(f.editId&&author!==ME)base.editedBy=ME;
  if(f.likes)base.likes=f.likes;
  let data;
- if(f.type==='food')data=Object.assign(base,{meal:f.meal,together:!!f.together,pairWith:(f.together&&partner()&&f.pairWith)||null,junk:JUNK.filter(j=>(f.junk||[]).includes(j))});
+ if(f.type==='food')data=Object.assign(base,{text:(f.items||[]).join('、'),items:(f.items||[]).slice(),meal:f.meal,together:!!f.together,pairWith:(f.together&&partner()&&f.pairWith)||null,junk:JUNK.filter(j=>(f.junk||[]).includes(j))});
  else if(f.type==='spend'){
   data=Object.assign(base,spendFields(f),{amount:amt,cat:f.cat});
   const orig=f.editId&&LOGS.find(l=>l.id===f.editId);
@@ -1150,7 +1221,7 @@ async function save(){
 function openLog(id){
  const l=LOGS.find(x=>x.id===id);if(!l)return;const c=calc();const p=c.per[id]||{pts:0};
  const mine=l.who===ME;const liked=(l.likes||[]).includes(ME);
- const rows=[['日期',fmtDay(l.date)],['記錄的人',esc(nameOf(l.who))]];
+ const rows=[['日期',fmtDay(l.date)],['記錄的人',esc(nameOf(l.who))+(l.editedBy&&l.editedBy!==l.who?`<small>${esc(nameOf(l.editedBy))}修改過</small>`:'')]];
  if(l.type==='spend'){const p=sPayer(l),o=otherOf(p);
   rows.push(['金額',`<span class="num">${money(l.amount)}</span>`],['這筆花費是',esc(ownerLabel(sOwner(l)))],['付款人',esc(nameOf(p))],
    ['付款方式',l.method?esc(l.method):'<span class="muted">未設定</span>'],...(l.platform?[['支付平台',esc(l.platform)]]:[]),
@@ -1165,8 +1236,8 @@ function openLog(id){
  <div style="margin-top:8px">${rows.map(([k,v])=>`<div class="kv"><span>${k}</span><b>${v}</b></div>`).join('')}</div>
  ${RO?'':`<div class="sheet-actions">
   ${aaOpen(l)?`<button class="bigbtn full" data-act="settle" data-v="${esc(id)}">${ic('check','sm')}標記已結清</button>`:''}
-  ${mine?`<button class="ghost" data-act="edit" data-v="${esc(id)}">${ic('edit','sm')}編輯</button><button class="ghost danger" data-act="del" data-v="${esc(id)}" id="delbtn">${ic('trash','sm')}刪除</button>`
-   :`<button class="${liked?'ghost':aaOpen(l)?'ghost':'bigbtn'} full" data-act="like" data-v="${esc(id)}">${ic('heart','sm')}${liked?'收回讚':'給個讚'}</button>`}
+  ${mine?'':`<button class="${liked?'ghost':aaOpen(l)?'ghost':'bigbtn'} full" data-act="like" data-v="${esc(id)}">${ic('heart','sm')}${liked?'收回讚':'給個讚'}</button>`}
+  <button class="ghost" data-act="edit" data-v="${esc(id)}">${ic('edit','sm')}編輯</button><button class="ghost danger" data-act="del" data-v="${esc(id)}" id="delbtn">${ic('trash','sm')}刪除</button>
   ${l.type==='spend'&&l.aa&&l.settledAt?`<button class="ghost full" data-act="unsettle" data-v="${esc(id)}" style="height:44px">改回未結清</button>`:''}
  </div>`}`);
 }
@@ -1199,6 +1270,15 @@ document.addEventListener('click',async e=>{
  else if(a==='fjunk'){const s=new Set(F.junk||[]);s.has(v)?s.delete(v):s.add(v);F.junk=[...s];render()}
  else if(a==='save')save();
  else if(a==='filter'){ui[b.dataset.k]=v;ui.days=30;render()}
+ else if(a==='itemAdd'){const inp=document.getElementById('f-item');if(!addItem(inp?inp.value:F.itemDraft)){inp&&inp.focus();return}render();document.getElementById('f-item')?.focus()}
+ else if(a==='itemDel'){F.items.splice(+v,1);render()}
+ else if(a==='itemEdit'){const x=F.items.splice(+v,1)[0];F.itemDraft=x;render();const inp=document.getElementById('f-item');if(inp){inp.focus();inp.setSelectionRange(x.length,x.length)}}
+ else if(a==='freqAdd'){addItem(v);render()}
+ else if(a==='freqManage'){F.manageFreq=!F.manageFreq;render()}
+ else if(a==='freqHide'){savePrefs({hiddenItems:[...new Set([...(PREFS.hiddenItems||[]),v])]});render()}
+ else if(a==='freqReset'){savePrefs({hiddenItems:[]});F.manageFreq=false;render()}
+ else if(a==='billAnyway'){F.billAnyway=true;render();document.getElementById('f-amount')?.focus()}
+ else if(a==='glance'){ui.today=ui.today===v?null:v;render()}
  else if(a==='more'){ui.days+=30;render()}
  else if(a==='open')openLog(v);
  else if(a==='close')closeSheet();
@@ -1263,7 +1343,10 @@ document.addEventListener('input',e=>{
  const p=document.getElementById('preview');if(p)p.innerHTML=previewHTML(estimate());
  if(k==='minutes')document.querySelectorAll('[data-k="minutes"]').forEach(x=>x.classList.toggle('on',+x.dataset.v===+F.minutes));
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape')closeSheet();
+ if(e.key==='Enter'&&e.target&&e.target.id==='f-item'&&!e.isComposing&&e.keyCode!==229){e.preventDefault();if(addItem(e.target.value)){render();document.getElementById('f-item')?.focus()}}
+});
 
 init();
 </script>

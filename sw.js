@@ -1,6 +1,6 @@
 // 伴日 Service Worker
 // 每次更新程式時，把 VERSION 的數字加 1，手機就會抓到新版。
-const VERSION = 'banri-v3';
+const VERSION = 'banri-v6';
 const SHELL = ['./', 'index.html', 'config.js', 'manifest.webmanifest',
   'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
