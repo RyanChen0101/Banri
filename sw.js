@@ -1,8 +1,8 @@
 // 伴日 Service Worker
 // 每次更新程式時，把 VERSION 的數字加 1，手機就會抓到新版。
-const VERSION = 'banri-v1';
+const VERSION = 'banri-v2';
 const SHELL = ['./', 'index.html', 'config.js', 'manifest.webmanifest',
-  'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
+  'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -34,8 +34,8 @@ self.addEventListener('fetch', e => {
   // 只處理自己網站的檔案；Supabase 的資料一律直接連網路
   if (url.origin !== self.location.origin) return;
 
-  // 圖示：先用快取
-  if (url.pathname.includes('/icons/')) {
+  // 圖示（.png）：先用快取
+  if (url.pathname.endsWith('.png')) {
     e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res => {
       const copy = res.clone(); caches.open(VERSION).then(c => c.put(req, copy)); return res;
     })));
